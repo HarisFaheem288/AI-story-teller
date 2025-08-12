@@ -4,5 +4,4 @@ sentence-transformers
 diffusers
 pyttsx3
 faiss-cpu
-langchain
-langchain-community
+
