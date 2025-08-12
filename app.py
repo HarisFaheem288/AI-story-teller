@@ -6,53 +6,82 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from diffusers import StableDiffusionPipeline
 import pyttsx3
 import torch
-from PIL import Image
+import os
+import tempfile
+import gdown
+import zipfile
 
-# ======== SETTINGS ========
-story_model_path = "microsoft/Phi-3-mini-4k-instruct"  # Your Phi-3 model path
-image_model_id = "CompVis/stable-diffusion-v1-4"    # Lightweight image generation model
-faiss_index_path = "stories_index.faiss"
-faiss_metadata_path = "stories_metadata.json"
+# -------- CONFIG --------
+# Local FAISS files - already present locally
+FAISS_INDEX_PATH = "stories_index.faiss"
+FAISS_METADATA_PATH = "stories_metadata.json"
+
+# Google Drive file IDs for zipped models
+GDRIVE_ID_STORY_MODEL = "1B7mRxf7djcTV4zLwT-iq0OPH5xXfhn9k"
+GDRIVE_ID_IMAGE_MODEL = "YOUR_GOOGLE_DRIVE_FILE_ID_LOCAL_MISTRAL2_ZIP"
+
+# Where to extract models
+MODEL_DIR = "models"
+STORY_MODEL_DIR = os.path.join(MODEL_DIR, "local_mistral_model1")
+IMAGE_MODEL_DIR = os.path.join(MODEL_DIR, "local_mistral_model2")
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
+st.title("📖 RAG Story Generator with Image & Audio")
 
-st.title("📚 Story + 🎨 Image + 🔊 Voice Generator")
+def download_and_extract_gdrive_file(gdrive_id, extract_to):
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    zip_path = os.path.join(MODEL_DIR, f"{gdrive_id}.zip")
+    if not os.path.exists(extract_to):
+        if not os.path.exists(zip_path):
+            url = f"https://drive.google.com/uc?id={gdrive_id}"
+            st.write(f"Downloading model from Google Drive (ID: {gdrive_id})...")
+            gdown.download(url, zip_path, quiet=False)
+        st.write(f"Extracting {zip_path}...")
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_to)
+    else:
+        st.write(f"Model folder {extract_to} already exists, skipping download.")
 
-@st.cache_resource
-def load_resources():
-    # Load FAISS index
-    index = faiss.read_index(faiss_index_path)
-    with open(faiss_metadata_path, 'r', encoding='utf-8') as f:
+@st.cache_resource(show_spinner=True)
+def load_models():
+    # Download & extract models from Drive if needed
+    download_and_extract_gdrive_file(GDRIVE_ID_STORY_MODEL, STORY_MODEL_DIR)
+    download_and_extract_gdrive_file(GDRIVE_ID_IMAGE_MODEL, IMAGE_MODEL_DIR)
+
+    # Load FAISS index & metadata from local disk
+    st.write("Loading FAISS index and metadata from local files...")
+    index = faiss.read_index(FAISS_INDEX_PATH)
+    with open(FAISS_METADATA_PATH, "r", encoding="utf-8") as f:
         metadata = json.load(f)
 
-    # Embedding model
     embed_model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    # Story model
-    tokenizer = AutoTokenizer.from_pretrained(story_model_path)
+    # Load story generation model and tokenizer
+    st.write("Loading story generation model...")
+    tokenizer = AutoTokenizer.from_pretrained(STORY_MODEL_DIR)
     story_model = AutoModelForCausalLM.from_pretrained(
-        story_model_path,
+        STORY_MODEL_DIR,
         torch_dtype=torch.float16 if device == "cuda" else torch.float32,
         device_map="auto"
     )
 
-    # Image model
+    # Load image generation pipeline
+    st.write("Loading image generation model...")
     image_pipe = StableDiffusionPipeline.from_pretrained(
-        image_model_id,
+        IMAGE_MODEL_DIR,
         torch_dtype=torch.float16 if device == "cuda" else torch.float32
     ).to(device)
 
     return index, metadata, embed_model, tokenizer, story_model, image_pipe
 
-index, metadata, embed_model, tokenizer, story_model, image_pipe = load_resources()
+# Load all models once
+index, metadata, embed_model, tokenizer, story_model, image_pipe = load_models()
 
-# ======== Retrieval Function ========
 def retrieve_chunks(query, top_k=3):
     query_vec = embed_model.encode([query])
     distances, indices = index.search(query_vec, top_k)
     return [metadata['texts'][i] for i in indices[0]]
 
-# ======== Story Generation Function ========
 def generate_story_with_context(query):
     context_chunks = retrieve_chunks(query)
     context_text = "\n".join(context_chunks)
@@ -72,47 +101,43 @@ def generate_story_with_context(query):
         do_sample=True,
         temperature=0.8
     )
-    story = tokenizer.decode(outputs[0], skip_special_tokens=True)
 
+    story = tokenizer.decode(outputs[0], skip_special_tokens=True)
     if "Background:" in story:
         story = story.split("Background:")[-1].strip()
-
     return story
 
-# ======== Image Generation Function ========
 def generate_image(prompt):
     image = image_pipe(prompt).images[0]
-    return image
+    img_path = os.path.join(tempfile.gettempdir(), "generated_image.png")
+    image.save(img_path)
+    return img_path
 
-# ======== Text-to-Speech Function ========
 def text_to_speech(text):
     engine = pyttsx3.init()
     engine.setProperty('rate', 160)
     engine.setProperty('volume', 1.0)
-    audio_path = "story_audio.wav"
+    audio_path = os.path.join(tempfile.gettempdir(), "story_audio.wav")
     engine.save_to_file(text, audio_path)
     engine.runAndWait()
     return audio_path
 
-# ======== Streamlit UI ========
-prompt = st.text_input("Enter your story idea:")
+# Streamlit UI
+user_prompt = st.text_area("Enter your story idea:", height=150)
 
-if st.button("Generate Story & Image"):
-    if prompt:
-        with st.spinner("Generating story..."):
-            story = generate_story_with_context(prompt)
-        st.subheader("📖 Generated Story")
-        st.write(story)
+if st.button("Generate Story, Image & Audio") and user_prompt.strip():
+    with st.spinner("Generating story..."):
+        story = generate_story_with_context(user_prompt)
+    st.subheader("📜 Generated Story")
+    st.write(story)
 
-        with st.spinner("Generating image..."):
-            img = generate_image(prompt)
-        st.image(img, caption="Generated Image", use_column_width=True)
+    with st.spinner("Generating image..."):
+        img_path = generate_image(user_prompt)
+    st.image(img_path, caption="Generated Image", use_column_width=True)
 
-        with st.spinner("Generating audio..."):
-            audio_path = text_to_speech(story)
-        audio_file = open(audio_path, "rb")
-        st.audio(audio_file.read(), format="audio/wav")
+    with st.spinner("Generating audio..."):
+        audio_path = text_to_speech(story)
 
-        st.success("✅ Done!")
-    else:
-        st.warning("Please enter a prompt.")
+    if st.button("▶ Play Audio"):
+        audio_bytes = open(audio_path, 'rb').read()
+        st.audio(audio_bytes, format='audio/wav')
