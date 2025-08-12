@@ -34,9 +34,7 @@ def download_and_extract_gdrive_file(gdrive_id, extract_to):
     if not os.path.exists(extract_to):
         if not os.path.exists(zip_path):
             url = f"https://drive.google.com/uc?id={gdrive_id}"
-            st.write(f"Downloading model from Google Drive (ID: {gdrive_id})...")
             gdown.download(url, zip_path, quiet=False)
-        st.write(f"Extracting {zip_path}...")
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(extract_to)
     else:
@@ -57,7 +55,6 @@ def load_models():
     embed_model = SentenceTransformer('all-MiniLM-L6-v2')
 
     # Load story generation model and tokenizer
-    st.write("Loading story generation model...")
     tokenizer = AutoTokenizer.from_pretrained(STORY_MODEL_DIR)
     story_model = AutoModelForCausalLM.from_pretrained(
         STORY_MODEL_DIR,
@@ -66,7 +63,6 @@ def load_models():
     )
 
     # Load image generation pipeline
-    st.write("Loading image generation model...")
     image_pipe = StableDiffusionPipeline.from_pretrained(
         IMAGE_MODEL_DIR,
         torch_dtype=torch.float16 if device == "cuda" else torch.float32
