@@ -4,4 +4,4 @@ sentence-transformers
 diffusers
 pyttsx3
 faiss-cpu
-
+accelerate
