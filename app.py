@@ -18,7 +18,7 @@ FAISS_METADATA_PATH = "stories_metadata.json"
 
 # Google Drive file IDs for zipped models
 GDRIVE_ID_STORY_MODEL = "1B7mRxf7djcTV4zLwT-iq0OPH5xXfhn9k"
-GDRIVE_ID_IMAGE_MODEL = "YOUR_GOOGLE_DRIVE_FILE_ID_LOCAL_MISTRAL2_ZIP"
+GDRIVE_ID_IMAGE_MODEL = "1VJvocegTsx533E_y8e0e0xYhRSwhaTge"
 
 # Where to extract models
 MODEL_DIR = "models"
