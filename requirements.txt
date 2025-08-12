@@ -3,6 +3,5 @@ transformers==4.34.0
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4
 diffusers==0.20.2
-pyttsx3==2.90
 gdown==4.6.4
 torch==2.0.1
