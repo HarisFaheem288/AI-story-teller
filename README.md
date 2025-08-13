@@ -100,10 +100,10 @@ storycraft-ai/
 ## 📸 Screenshots
 
 **Main Dashboard**
-![Main Dashboard](assets/screenshot_main.jpg)
+![Main Dashboard](screenshot_main.jpg)
 
 **Generated Story & Image**
-![Generated Story](assets/screenshot_story.jpg)
+![Generated Story](screenshot_story.jpg)
 
 ---
 
