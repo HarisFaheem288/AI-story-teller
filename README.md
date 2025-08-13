@@ -124,7 +124,6 @@ For major changes, please open an issue first to discuss what you would like to 
 
 ---
 
-**Made with ❤️ using Python, Streamlit & Hugging Face**
 
 ``````
 
