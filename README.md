@@ -1,5 +1,3 @@
-````markdown
-# StoryCraft AI — Interactive Story, Image & Voice Generator
 
 **StoryCraft AI** is a Streamlit-based interactive dashboard that brings your creative ideas to life!  
 Enter a short story idea, and the app will:
@@ -7,6 +5,7 @@ Enter a short story idea, and the app will:
 1. **Generate an original story** (without copying background text).
 2. **Create an AI-generated image** to match the story.
 3. **Narrate the story** using realistic text-to-speech — playback starts only when you click a button.
+
 
 ---
 
