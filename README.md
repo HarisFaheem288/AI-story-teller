@@ -115,8 +115,6 @@ storycraft-ai/
 
 ---
 
----
-
 ## 🤝 Contributing
 
 Pull requests are welcome!
