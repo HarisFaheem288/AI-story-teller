@@ -22,13 +22,13 @@ Enter a short story idea, and the app will:
 ## 🛠️ Tech Stack
 
 - **[Python 3.10+]**
-- **[Streamlit]
-- **[FAISS]
-- **[Sentence Transformers]
-- **[Transformers]
-- **[Diffusers]
-- **[Pyttsx3]
-- **[Torch]
+- **[Streamlit]**
+- **[FAISS]**
+- **[Sentence Transformers]**
+- **[Transformers]**
+- **[Diffusers]**
+- **[Pyttsx3]**
+- **[Torch]**
 
 ---
 
@@ -38,6 +38,7 @@ Enter a short story idea, and the app will:
    ```bash
    git clone https://github.com/YOUR_USERNAME/storycraft-ai.git
    cd storycraft-ai
+````
 ````
 
 2. **Create a virtual environment & activate it**
@@ -98,8 +99,6 @@ storycraft-ai/
 
 ## 📸 Screenshots
 
-> Replace these placeholders with your screenshots after running the app.
-
 **Main Dashboard**
 ![Main Dashboard](assets/screenshot_main.png)
 
@@ -127,4 +126,5 @@ For major changes, please open an issue first to discuss what you would like to 
 
 **Made with ❤️ using Python, Streamlit & Hugging Face**
 
-```
+``````
+
