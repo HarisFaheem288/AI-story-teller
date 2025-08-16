@@ -39,6 +39,7 @@ Enter a short story idea, and the app will:
    git clone https://github.com/YOUR_USERNAME/storycraft-ai.git
    cd storycraft-ai
 ````
+
 ````
 
 2. **Create a virtual environment & activate it**
